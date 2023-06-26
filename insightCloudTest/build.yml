@@ -1,0 +1,41 @@
+﻿trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: '**/*.sln'
+  buildConfiguration: 'Release'
+  artifactName: 'WebAppPackage'
+  serviceBusConnectionString: '$(myServiceBusConnectionString)' # Secret variable for the connection string
+  queueName: '$(myQueueName)' # Secret variable for the queue name
+  
+steps:
+- task: UseDotNet@2
+  displayName: 'Use .NET Core SDK'
+  inputs:
+    version: '5.x'
+
+- task: NuGetToolInstaller@1
+  displayName: 'Install NuGet'
+
+- task: NuGetCommand@2
+  displayName: 'Restore NuGet packages'
+  inputs:
+    command: 'restore'
+    restoreSolution: '$(solution)'
+
+- task: VSBuild@1
+  displayName: 'Build solution'
+  inputs:
+    solution: '$(solution)'
+    configuration: '$(buildConfiguration)'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish artifact'
+  inputs:
+    pathtoPublish: '$(system.defaultworkingdirectory)/path/to/artifacts'
+    artifactName: '$(artifactName)'
